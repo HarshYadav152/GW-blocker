@@ -2,7 +2,7 @@
 
 A lightweight, cross-platform application that blocks distracting websites by modifying your system's hosts file.
 
-GW-Bocker Screenshot
+GW-Blocker Screenshot
 <img src="https://raw.githubusercontent.com/HarshYadav152/resources/main/images/GW-blocker/gwblocker.png"/>
 
 ## Features
