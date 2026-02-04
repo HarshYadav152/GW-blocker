@@ -1,101 +1,97 @@
-# Contributing to Website Blocker GUI
+# Contributing to GW-Blocker
 
-Thank you for considering contributing to Website Blocker GUI! This document provides guidelines and steps for contributing.
+Thank you for your interest in contributing to GW-Blocker! This document provides guidelines for contributing to the project.
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-Before submitting a bug report:
+Before creating bug reports, please check the existing issues to avoid duplicates. When creating a bug report, include:
 
-1. Check the [issue tracker](https://github.com/yourusername/website-blocker-gui/issues) to see if the issue has already been reported.
-2. If you're unable to find an open issue addressing the problem, open a new one with the following information:
-   - Clear title that identifies the problem
-   - Detailed description of the issue
-   - Steps to reproduce the behavior
-   - Expected behavior
-   - Screenshots (if applicable)
-   - Operating system and version
-   - Python version
+- **Clear title and description**
+- **Steps to reproduce** the issue
+- **Expected behavior** vs actual behavior
+- **Screenshots** if applicable
+- **Environment details** (OS, Python version)
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion:
+Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, include:
 
-1. Use a clear and descriptive title
-2. Provide a detailed description of the suggested enhancement
-3. Explain why this enhancement would be useful
-4. Include any relevant examples or mockups
+- **Clear title and description**
+- **Use case** for the enhancement
+- **Possible implementation** approach (optional)
 
 ### Pull Requests
 
 1. Fork the repository
-2. Create a new branch (`git checkout -b feature/amazing-feature`)
+2. Create a new branch (`git checkout -b feature/your-feature-name`)
 3. Make your changes
-4. Commit your changes (`git commit -m 'Add some amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+4. Test your changes thoroughly
+5. Commit your changes (`git commit -m 'Add some feature'`)
+6. Push to the branch (`git push origin feature/your-feature-name`)
+7. Open a Pull Request
 
 #### Pull Request Guidelines
 
-- Follow the coding style and conventions used in the project
-- Include appropriate tests if you're adding new functionality
-- Update documentation as needed
-- Ensure all tests pass
-- Keep pull requests focused on a single change
+- Follow the existing code style
+- Add comments for complex logic
+- Update documentation if needed
+- Test on multiple platforms if possible
+- Keep commits focused and atomic
 
 ## Development Setup
 
-1. Fork and clone the repository:
+1. Clone your fork:
 ```bash
-git clone https://github.com/yourusername/website-blocker-gui.git cd website-blocker-gui
+git clone https://github.com/HarshYadav152/GW-blocker.git
+cd GW-blocker
 ```
 
-2. Install development dependencies:
-```python
+2. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
+3. Run the application:
+```bash
+# Windows (as administrator)
+python -m src.main
 
-3. Make your changes and test thoroughly
+# macOS/Linux
+sudo python3 -m src.main
+```
 
-## Style Guidelines
+## Code Style
 
-### Python Code
-
-- Follow PEP 8 style guidelines
+- Follow PEP 8 guidelines for Python code
 - Use meaningful variable and function names
-- Include docstrings for all functions, classes, and modules
-- Keep functions focused on a single responsibility
-
-### Git Commit Messages
-
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests after the first line
+- Add docstrings to functions and classes
+- Keep functions focused and modular
 
 ## Testing
 
-Before submitting a pull request, please test your changes:
+Before submitting a pull request:
 
-- On multiple platforms if possible (Windows, macOS, Linux)
-- With different Python versions (minimum 3.6)
+- Test the application on your platform
+- Verify that blocking and unblocking works correctly
+- Check that the timer functionality works as expected
+- Ensure no errors in the console
 
 ## Documentation
 
-Changes to functionality should be reflected in the documentation:
-
-- Update the README.md if necessary
-- Update or add docstrings
+- Update the [README.md](README.md) if you change functionality
 - Add comments for complex code sections
+- Update installation instructions if dependencies change
 
 ## Questions?
 
-If you have any questions, please feel free to open an issue or contact the project maintainer.
+Feel free to open an issue for any questions about contributing!
 
-Thank you for contributing to Website Blocker GUI!
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
