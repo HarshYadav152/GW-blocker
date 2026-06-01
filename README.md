@@ -139,6 +139,18 @@ The executable will be created in the `dist/` directory.
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a Pull Request.
 
+### Developer Setup
+
+If you are contributing code or tests, install development dependencies:
+```bash
+pip install -r requirements-dev.txt
+```
+
+Run the test suite locally with:
+```bash
+python -m pytest -q
+```
+
 ### Quick Start for Contributors
 
 1. Fork the repository
