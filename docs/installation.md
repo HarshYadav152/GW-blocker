@@ -65,3 +65,9 @@ If you prefer to run the script directly using Python, follow these steps:
      ```bash
      sudo python3 -m src.main
      ```
+
+4. **Verify dependencies**:
+   - Make sure you are running Python 3.6 or later.
+   - Ensure `tkinter` is installed and available in the active Python environment.
+   - If `tkinter` is missing, install it through your package manager or use a Python distribution that includes it.
+

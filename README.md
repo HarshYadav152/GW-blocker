@@ -86,6 +86,8 @@ python -m src.main
 sudo python3 -m src.main
 ```
 
+> Tip: Ensure you are running Python 3.6 or newer and that the `tkinter` package is available on your system.
+
 ## Usage
 
 ### Blocking a Website
