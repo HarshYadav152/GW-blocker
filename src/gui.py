@@ -43,6 +43,7 @@ class WebsiteBlockerApp:
         self.url_entry = ttk.Entry(url_frame)
         self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 5))
         self.url_entry.bind("<Return>", lambda e: self._block_website())
+        self.url_entry.focus_set()
         
         ttk.Button(url_frame, text="Block", command=self._block_website).pack(side=tk.LEFT)
         
@@ -120,7 +121,21 @@ class WebsiteBlockerApp:
             button_frame, text="Unblock All", 
             command=self._unblock_all
         ).pack(side=tk.LEFT)
+
+        self.status_label = ttk.Label(main_frame, text="Ready", anchor=tk.W)
+        self.status_label.pack(fill=tk.X, pady=(10, 0))
+
+        # Keyboard shortcuts for accessibility
+        self.root.bind("<Control-Return>", lambda e: self._block_website())
+        self.root.bind("<Control-u>", lambda e: self._unblock_selected())
+        self.root.bind("<Control-a>", lambda e: self._unblock_all())
+        self.root.bind("<Control-l>", lambda e: self.url_entry.focus_set())
     
+    def _set_status(self, message: str) -> None:
+        """Update the status bar text."""
+        if hasattr(self, "status_label"):
+            self.status_label.config(text=message)
+
     def _update_site_list(self):
         """Update the list of blocked websites."""
         # Clear the listbox
@@ -130,6 +145,7 @@ class WebsiteBlockerApp:
         blocked_sites = self.blocker.get_blocked_websites()
         for site in blocked_sites:
             self.site_listbox.insert(tk.END, site)
+        self._set_status(f"{len(blocked_sites)} blocked site(s) loaded")
     
     def _block_website(self):
         """Block the website entered in the URL field."""
@@ -178,6 +194,7 @@ class WebsiteBlockerApp:
         # Block the website
         if self.blocker.block_website(url):
             messagebox.showinfo("Success", f"Successfully blocked {url}")
+            self._set_status(f"Blocked {url}")
             self.url_entry.delete(0, tk.END)
             self._update_site_list()
             
@@ -185,6 +202,7 @@ class WebsiteBlockerApp:
             blocked_sites = self.blocker.get_blocked_websites()
             save_blocked_sites(blocked_sites)
         else:
+            self._set_status("Failed to block website")
             messagebox.showerror(
                 "Error", 
                 "Failed to block website. Make sure you're running as administrator."
@@ -200,12 +218,14 @@ class WebsiteBlockerApp:
         website = self.site_listbox.get(selection[0])
         if self.blocker.unblock_website(website):
             messagebox.showinfo("Success", f"Successfully unblocked {website}")
+            self._set_status(f"Unblocked {website}")
             self._update_site_list()
             
             # Update config
             blocked_sites = self.blocker.get_blocked_websites()
             save_blocked_sites(blocked_sites)
         else:
+            self._set_status("Failed to unblock website")
             messagebox.showerror(
                 "Error", 
                 "Failed to unblock website. Make sure you're running as administrator."
@@ -216,11 +236,13 @@ class WebsiteBlockerApp:
         if messagebox.askyesno("Confirm", "Are you sure you want to unblock all websites?"):
             if self.blocker.unblock_all():
                 messagebox.showinfo("Success", "Successfully unblocked all websites")
+                self._set_status("All websites unblocked")
                 self._update_site_list()
                 
                 # Update config
                 save_blocked_sites([])
             else:
+                self._set_status("Failed to unblock all websites")
                 messagebox.showerror(
                     "Error", 
                     "Failed to unblock websites. Make sure you're running as administrator."
