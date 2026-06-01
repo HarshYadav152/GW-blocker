@@ -18,63 +18,40 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
           issue-message: |
-            👋 **Welcome @${{ github.actor }} to GW-blocker!**  
+            👋 **Welcome @${{ github.actor }} to GW-blocker!**
 
-            Thanks for opening your **first issue** — we're glad to have you here 🎉  
+            Thanks for opening your first issue — we appreciate your help improving the project.
 
             Before a maintainer reviews this issue, please ensure it includes:
-            - ✔️ Clear description of the problem  
-            - ✔️ Steps to reproduce (for bugs)  
-            - ✔️ Expected vs actual behavior  
-            - ✔️ Screenshots/logs (if applicable)  
-            - ✔️ Environment details (OS, browser, device, etc.)
+            - ✔️ Clear description of the problem
+            - ✔️ Steps to reproduce (for bugs)
+            - ✔️ Expected vs actual behavior
+            - ✔️ Screenshots/logs (if applicable)
+            - ✔️ Environment details (OS, Python version, installation method)
 
-            📘 **Contribution Guide:**  
-            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md  
+            📘 **Contribution Guide:**
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
 
-            ---
-
-            ### 💬 Join Our Community
-            **💚 WhatsApp (Casual Chat & Quick Help)**  
-            For informal conversations, quick doubts, and a wholesome contributor experience:  
-            👉 **https://chat.whatsapp.com/I8GYXd3mHlDCC2iXhNGeqV**
-
-            > We believe in building a friendly community! Feel free to join WhatsApp for casual chats, memes, and getting to know fellow contributors 🤝
-
-            ---
-
-            A maintainer will review your issue soon.  
-            Happy contributing 🚀  
+            A maintainer will review your issue soon.
+            Happy contributing! 🚀
 
           pr-message: |
-            🎉 **Thank you @${{ github.actor }} for your first PR to GW-blocker!**  
+            🎉 **Thank you @${{ github.actor }} for your first PR to GW-blocker!**
 
-            We really appreciate your contribution 🙌  
+            We appreciate your contribution and the time you invested.
 
             What happens next:
-            - 🔍 Maintainers will review your PR  
-            - 🧪 Automated checks will run  
-            - ✨ Feedback may be shared if needed  
+            - 🔍 Maintainers will review your PR
+            - 🧪 Automated checks will run
+            - ✨ Feedback may be shared if needed
 
             Please confirm your PR includes:
-            - ✔️ Clear summary of changes  
-            - ✔️ Linked issue (e.g., Fixes #123)  
-            - ✔️ Steps to test  
-            - ✔️ Screenshots (for UI changes)
+            - ✔️ Clear summary of changes
+            - ✔️ Linked issue (when available)
+            - ✔️ Steps to test
+            - ✔️ Screenshots for UI changes
 
-            📘 **Contribution Standards:**  
-            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md  
+            📘 **Contribution Standards:**
+            👉 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
 
-            ---
-
-            ### 💬 Stay Connected with Our Community
-            **💚 WhatsApp (Friendly Community)**  
-            For informal chats, quick help, and building friendships with contributors:  
-            👉 **https://chat.whatsapp.com/I8GYXd3mHlDCC2iXhNGeqV**
-
-            > 🌟 **Our Philosophy:** We value both professional collaboration and personal connections (WhatsApp). Join both to get the complete SS-Capture community experience!
-
-            ---
-
-            Thanks for helping improve GW-blocker 🚀  
-            Let's build something amazing together! 💪
+            Thanks for helping improve GW-blocker!
