@@ -1,30 +1,40 @@
-## Description
-Please include a summary of the changes and the related issue.
+## Summary
+Provide a concise summary of the changes in this pull request.
 
-Fixes # (issue)
+## Related Issue
+Link the related issue if available, for example:
+
+Fixes #123
+
+## What Changed
+- Describe the key changes made in this PR.
+- Keep bullet points short and focused.
 
 ## Type of Change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix
+- [ ] New feature
 - [ ] Documentation update
+- [ ] Refactor
+- [ ] CI / tooling
 
 ## Testing
-Please describe the tests you ran to verify your changes:
+Describe how the changes were tested and what was verified.
+- [ ] Tested locally
 - [ ] Tested on Windows
 - [ ] Tested on macOS
 - [ ] Tested on Linux
-- [ ] Blocking websites works correctly
-- [ ] Unblocking websites works correctly
-- [ ] Timer functionality works as expected
+- [ ] Verified blocking/unblocking workflows
+- [ ] Verified any UI or documentation updates
 
 ## Checklist
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have tested my changes on my platform
+- [ ] Code follows project conventions and style
+- [ ] Change is scoped to this PR
+- [ ] No unrelated files were modified
+- [ ] Documentation updated if needed
+- [ ] No new warnings were introduced
+
+## Notes
+Add any additional context, migration notes, or testing details.
 
 ## Screenshots (if applicable)
 Add screenshots to help explain your changes.
