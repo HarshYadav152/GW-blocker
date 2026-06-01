@@ -15,6 +15,9 @@ Describe the problem this feature would solve or the use case it addresses.
 ## Proposed Solution
 A clear and concise description of what you want to happen.
 
+## Benefits
+Explain why this feature would improve the project or user experience.
+
 ## Alternative Solutions
 A clear and concise description of any alternative solutions or features you've considered.
 
