@@ -10,20 +10,25 @@ CONFIG_DIR.mkdir(exist_ok=True)
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
 def is_valid_url(url: str) -> bool:
-    """Check if the given string is a valid URL format."""
-    # Simple URL validation - checks for domain format
-    pattern = r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+    """Check if the given string is a valid domain name."""
+    url = url.strip().lower()
+    if not url or url.startswith("http://") or url.startswith("https://"):
+        return False
+
+    # Basic domain validation: labels separated by dots, no spaces or unsafe characters.
+    pattern = r'^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$'
     return bool(re.match(pattern, url))
 
+
 def clean_url(url: str) -> str:
-    """Clean and normalize a URL."""
-    # Remove http://, https://, and www. prefixes
+    """Clean and normalize a URL to a bare domain name."""
+    url = url.strip().lower()
+    # Remove scheme and common prefixes
     url = re.sub(r'^https?://', '', url)
     url = re.sub(r'^www\.', '', url)
-    # Remove paths, query strings, etc.
-    url = url.split('/')[0]
-    return url.lower()
-
+    # Remove any path, query string, or fragment data
+    url = re.split(r'[/?#]', url, maxsplit=1)[0]
+    return url
 def save_blocked_sites(sites: List[str]) -> bool:
     """Save list of blocked sites to config file."""
     try:
