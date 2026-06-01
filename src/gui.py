@@ -43,9 +43,7 @@ class WebsiteBlockerApp:
         self.url_entry = ttk.Entry(url_frame)
         self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 5))
         self.url_entry.bind("<Return>", lambda e: self._block_website())
-        
-        ttk.Button(url_frame, text="Block", command=self._block_website).pack(side=tk.LEFT)
-        
+        self.url_entry.focus_set()
         # Time limit options
         time_frame = ttk.LabelFrame(main_frame, text="Block Duration")
         time_frame.pack(fill=tk.X, pady=(0, 10))
@@ -120,6 +118,12 @@ class WebsiteBlockerApp:
             button_frame, text="Unblock All", 
             command=self._unblock_all
         ).pack(side=tk.LEFT)
+
+        # Keyboard shortcuts for accessibility
+        self.root.bind("<Control-Return>", lambda e: self._block_website())
+        self.root.bind("<Control-u>", lambda e: self._unblock_selected())
+        self.root.bind("<Control-a>", lambda e: self._unblock_all())
+        self.root.bind("<Control-l>", lambda e: self.url_entry.focus_set())
     
     def _update_site_list(self):
         """Update the list of blocked websites."""
