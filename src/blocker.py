@@ -8,9 +8,21 @@ class WebsiteBlocker:
         """Initialize the website blocker with platform-specific hosts file path."""
         self.redirect = "127.0.0.1"
         self.hosts_path = self._get_hosts_path()
+        self._validate_hosts_path()
         
     def _get_hosts_path(self) -> str:
-        """Get the hosts file path based on the operating system."""
+        """Get the hosts file path based on the operating system.
+
+        A custom hosts file path may be supplied for testing or advanced setups
+        using the GW_BLOCKER_HOSTS_PATH environment variable.
+        """
+        env_path = os.environ.get("GW_BLOCKER_HOSTS_PATH")
+        if env_path:
+            env_path = os.path.expanduser(env_path)
+            if os.path.isfile(env_path):
+                return env_path
+            raise FileNotFoundError(f"Configured hosts path does not exist: {env_path}")
+
         system = platform.system().lower()
         if system == "windows":
             return r"C:\Windows\System32\drivers\etc\hosts"
@@ -18,6 +30,11 @@ class WebsiteBlocker:
             return "/etc/hosts"
         else:
             raise OSError(f"Unsupported operating system: {system}")
+
+    def _validate_hosts_path(self) -> None:
+        """Validate that the configured hosts file exists."""
+        if not os.path.isfile(self.hosts_path):
+            raise FileNotFoundError(f"Hosts file not found at {self.hosts_path}")
     
     def is_admin(self) -> bool:
         """Check if the script is running with admin privileges."""
