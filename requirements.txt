@@ -1,5 +1,3 @@
-Tkinter
-datetime
-time
-os
-sys
+# GW-Blocker has no runtime dependencies outside the Python standard library.
+# Install development and testing dependencies separately.
+pytest>=7.0
