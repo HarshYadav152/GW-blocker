@@ -29,12 +29,17 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ### Pull Requests
 
 1. Fork the repository
-2. Create a new branch (`git checkout -b feature/your-feature-name`)
-3. Make your changes
-4. Test your changes thoroughly
-5. Commit your changes (`git commit -m 'Add some feature'`)
-6. Push to the branch (`git push origin feature/your-feature-name`)
-7. Open a Pull Request
+2. Create an issue describing the change before implementing it
+3. Create a dedicated branch for your work:
+   - `feature/...` for enhancements
+   - `fix/...` for bug fixes
+   - `docs/...` for documentation updates
+   - `ci/...` for workflow or automation changes
+4. Make your changes in a focused branch
+5. Test your changes thoroughly
+6. Commit your changes with a clear message
+7. Push to the branch (`git push origin feature/your-feature-name`)
+8. Open a Pull Request and link the related issue
 
 #### Pull Request Guidelines
 
@@ -43,6 +48,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 - Update documentation if needed
 - Test on multiple platforms if possible
 - Keep commits focused and atomic
+- Keep unrelated changes out of the same PR
+- Include a short summary and testing steps in the PR description
 
 ## Development Setup
 

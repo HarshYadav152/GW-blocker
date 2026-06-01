@@ -21,6 +21,17 @@ First off, thank you for considering contributing to GW-Blocker! It's people lik
 
 ## Development Workflow
 
+### Issue and Branch Workflow
+
+- Open a clear issue before starting work whenever possible.
+- Wait for a maintainer to review, approve, or assign the issue before implementing it.
+- Create a dedicated branch for each change:
+  - `feature/...` for new functionality
+  - `fix/...` for bug fixes
+  - `docs/...` for documentation updates
+  - `ci/...` for workflow or automation improvements
+- Keep each branch and PR focused on a single problem.
+
 ### Running the App
 
 To test your changes, you will need to run the application with elevated privileges:
