@@ -102,7 +102,8 @@ class WebsiteBlocker:
                     if line.strip().startswith(self.redirect):
                         parts = line.strip().split()
                         if len(parts) >= 2:
-                            blocked_sites.append(parts[1])
+                            if parts[1] != "localhost":
+                                blocked_sites.append(parts[1])
         except Exception:
             pass
         return blocked_sites
