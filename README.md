@@ -32,21 +32,26 @@ A lightweight, cross-platform application that blocks distracting websites by mo
 > **Note:** Pre-built binaries are currently in progress. Please install from source.
 
 #### Windows
+
 1. Download the latest `.exe` file from the [Releases page](https://github.com/HarshYadav152/GW-blocker/releases)
 2. Right-click the downloaded file and select "Run as administrator"
 
 #### macOS
+
 1. Download the latest `.dmg` file from the [Releases page](https://github.com/HarshYadav152/GW-blocker/releases)
 2. Open the .dmg file and drag the application to your Applications folder
 3. When running for the first time, right-click on the app and select "Open"
 4. Enter your password when prompted
 
 #### Linux
+
 1. Download the appropriate package for your distribution from the [Releases page](https://github.com/HarshYadav152/GW-blocker/releases)
    - `.deb` for Debian/Ubuntu-based distributions
    - `.rpm` for Fedora/RHEL-based distributions
    - `.AppImage` for universal use
+
 2. Make the file executable:
+
 ```bash
 chmod +x WebsiteBlocker-*.AppImage
 ./WebsiteBlocker-*.AppImage
@@ -55,18 +60,22 @@ chmod +x WebsiteBlocker-*.AppImage
 ### Option 2: Install from Source
 
 #### Requirements
+
 - Python 3.6 or higher
 - Tkinter (usually included with Python)
 - pip (Python package installer)
 
 #### Steps
+
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/HarshYadav152/GW-blocker.git
 cd GW-blocker
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -74,14 +83,17 @@ pip install -r requirements.txt
 3. Run the application with administrator/root privileges:
 
 **Windows**:
+
 - Right-click Command Prompt and select "Run as administrator"
 - Navigate to the project directory:
+
 ```bash
 cd path\to\GW-blocker
 python -m src.main
 ```
 
 **macOS/Linux**:
+
 ```bash
 sudo python3 -m src.main
 ```
@@ -116,21 +128,25 @@ This application modifies your system's hosts file, which requires elevated perm
 ## Building from Source
 
 ### Prerequisites
+
 ```bash
 pip install pyinstaller
 ```
 
 ### Windows
+
 ```bash
 pyinstaller --onefile --windowed --uac-admin --icon=assets/icon.ico --name GW-Blocker src/main.py
 ```
 
 ### macOS
+
 ```bash
 pyinstaller --onefile --windowed --icon=assets/icon.icns --name GW-Blocker src/main.py
 ```
 
 ### Linux
+
 ```bash
 pyinstaller --onefile --name GW-Blocker src/main.py
 ```
