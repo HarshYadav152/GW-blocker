@@ -1,11 +1,18 @@
+import getpass
 import re
 import json
 import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
+# Gets the original user
+if os.name == 'nt':
+    USER = os.getlogin()
+else:
+    USER = os.environ.get("SUDO_USER") or getpass.getuser()
+    
 # Create user config directory
-CONFIG_DIR = Path(os.path.expanduser("~")) / ".website_blocker"
+CONFIG_DIR = Path(os.path.expanduser(f"~{USER}")) / ".website_blocker"
 CONFIG_DIR.mkdir(exist_ok=True)
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
