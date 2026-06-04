@@ -1,10 +1,18 @@
+import json
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import datetime
-from typing import List, Optional
 
 from src.blocker import WebsiteBlocker
-from src.utils import is_valid_url, clean_url, save_blocked_sites, load_config, save_block_until
+from src.utils import (
+    is_valid_url,
+    clean_url,
+    save_blocked_sites,
+    load_config,
+    save_block_until,
+    build_export_data,
+    parse_import_data,
+)
 
 class WebsiteBlockerApp:
     def __init__(self, root):
@@ -120,6 +128,17 @@ class WebsiteBlockerApp:
             button_frame, text="Unblock All", 
             command=self._unblock_all
         ).pack(side=tk.LEFT)
+
+        # Import / Export block list (issue #7)
+        ttk.Button(
+            button_frame, text="Export",
+            command=self._export_blocklist
+        ).pack(side=tk.RIGHT)
+
+        ttk.Button(
+            button_frame, text="Import",
+            command=self._import_blocklist
+        ).pack(side=tk.RIGHT, padx=(0, 5))
     
     def _update_site_list(self):
         """Update the list of blocked websites."""
@@ -225,3 +244,107 @@ class WebsiteBlockerApp:
                     "Error", 
                     "Failed to unblock websites. Make sure you're running as administrator."
                 )
+
+    def _export_blocklist(self):
+        """Export the current block list to a JSON file (issue #7)."""
+        blocked_sites = self.blocker.get_blocked_websites()
+        if not blocked_sites:
+            messagebox.showinfo("Export", "There are no blocked websites to export.")
+            return
+
+        file_path = filedialog.asksaveasfilename(
+            title="Export Block List",
+            defaultextension=".json",
+            initialfile="gw-blocker-blocklist.json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not file_path:
+            return  # user cancelled
+
+        try:
+            # Use the freshest config so the exported expiry/type is accurate.
+            config = load_config()
+            data = build_export_data(blocked_sites, config)
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            messagebox.showinfo(
+                "Export",
+                f"Exported {len(blocked_sites)} website(s) to:\n{file_path}",
+            )
+        except Exception as e:
+            messagebox.showerror("Export Failed", f"Could not export block list:\n{e}")
+
+    def _import_blocklist(self):
+        """Import a block list from a JSON file (issue #7).
+
+        Valid domains are blocked, duplicates are skipped gracefully, and
+        invalid entries are reported in a summary rather than aborting the
+        whole import.
+        """
+        file_path = filedialog.askopenfilename(
+            title="Import Block List",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not file_path:
+            return  # user cancelled
+
+        # Read + parse the file, with a clear error for malformed JSON.
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+        except json.JSONDecodeError as e:
+            messagebox.showerror(
+                "Import Failed",
+                f"The selected file is not valid JSON:\n{e}",
+            )
+            return
+        except Exception as e:
+            messagebox.showerror("Import Failed", f"Could not read the file:\n{e}")
+            return
+
+        valid_domains, skipped = parse_import_data(raw)
+
+        if not valid_domains:
+            messagebox.showwarning(
+                "Import",
+                "No valid websites were found in the selected file."
+                + (f"\n\nSkipped {len(skipped)} invalid entr"
+                   f"{'y' if len(skipped) == 1 else 'ies'}." if skipped else ""),
+            )
+            return
+
+        # Block only the domains that aren't already blocked.
+        already_blocked = set(self.blocker.get_blocked_websites())
+        to_block = [d for d in valid_domains if d not in already_blocked]
+        duplicates = len(valid_domains) - len(to_block)
+
+        if not to_block:
+            messagebox.showinfo(
+                "Import",
+                "All valid websites in the file are already blocked.",
+            )
+            return
+
+        if not self.blocker.block_websites(to_block):
+            messagebox.showerror(
+                "Import Failed",
+                "Failed to block websites. Make sure you're running as administrator.",
+            )
+            return
+
+        # Persist the updated list and refresh the UI.
+        self._update_site_list()
+        save_blocked_sites(self.blocker.get_blocked_websites())
+
+        # Build a clear summary of what happened.
+        summary = [f"Imported and blocked {len(to_block)} website(s)."]
+        if duplicates:
+            summary.append(f"Skipped {duplicates} already-blocked entr"
+                           f"{'y' if duplicates == 1 else 'ies'}.")
+        if skipped:
+            preview = ", ".join(skipped[:5])
+            if len(skipped) > 5:
+                preview += ", ..."
+            summary.append(f"Skipped {len(skipped)} invalid entr"
+                           f"{'y' if len(skipped) == 1 else 'ies'}: {preview}")
+        messagebox.showinfo("Import Complete", "\n".join(summary))
