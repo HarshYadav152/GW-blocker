@@ -21,6 +21,7 @@ A lightweight, cross-platform application that blocks distracting websites by mo
 - [Installation](#installation)
 - [Usage](#usage)
 - [Building from Source](#building-from-source)
+- [Developer Setup](#developer-setup)
 - [Contributing](#contributing)
 - [License](#license)
 - [Support](#support)
@@ -134,6 +135,87 @@ pyinstaller --onefile --name GW-Blocker src/main.py
 ```
 
 The executable will be created in the `dist/` directory.
+
+---
+
+## 🧑‍💻 Developer Setup
+
+This section is for contributors who want to run tests and work on the codebase locally.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/HarshYadav152/GW-blocker.git
+cd GW-blocker
+```
+
+### 2. Create a Virtual Environment (Recommended)
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Runtime Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Install Development Dependencies
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+> `requirements-dev.txt` includes testing tools like `pytest` and any other dev-only packages. These are not needed to run the app — only to contribute and test it.
+
+### 5. Running Tests
+
+Run the full test suite:
+
+```bash
+pytest
+```
+
+Run with verbose output to see each test name:
+
+```bash
+pytest -v
+```
+
+Run a specific test file:
+
+```bash
+pytest tests/test_blocker.py
+```
+
+Run tests matching a keyword:
+
+```bash
+pytest -k "block"
+```
+
+### 6. Check Test Coverage (Optional)
+
+If `pytest-cov` is included in `requirements-dev.txt`:
+
+```bash
+pytest --cov=src
+```
+
+---
+
+> **Tip:** Always activate your virtual environment before running tests to avoid polluting your global Python environment.
+
+---
 
 ## Contributing
 
