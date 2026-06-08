@@ -169,15 +169,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Install Development Dependencies
 
-```bash
-pip install -r requirements-dev.txt
-```
-
-> `requirements-dev.txt` includes testing tools like `pytest` and any other dev-only packages. These are not needed to run the app — only to contribute and test it.
-
-### 5. Running Tests
+### 4. Running Tests
 
 Run the full test suite:
 
@@ -201,14 +194,6 @@ Run tests matching a keyword:
 
 ```bash
 pytest -k "block"
-```
-
-### 6. Check Test Coverage (Optional)
-
-If `pytest-cov` is included in `requirements-dev.txt`:
-
-```bash
-pytest --cov=src
 ```
 
 ---
