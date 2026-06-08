@@ -18,23 +18,27 @@ from src.utils import (
     remove_password,
 )
 
+
 class WebsiteBlockerApp:
     def __init__(self, root):
         """Initialize the Website Blocker GUI."""
         self.root = root
         self.root.title("GW-blocker")
-        self.root.geometry("500x400")
+        self.root.geometry("500x430")
         self.root.resizable(True, True)
-        
+
         self.blocker = WebsiteBlocker()
         self.config = load_config()
-        
-        # Check admin privileges
+
+        # Master list that always holds the full blocked-sites state.
+        # The listbox may show a filtered subset; this is the source of truth.
+        self._all_blocked: list = []
+
         if not self.blocker.is_admin():
             messagebox.showwarning(
                 "Administrator Privileges Required",
                 "This application requires administrator privileges to modify the hosts file. "
-                "Please restart the application as administrator."
+                "Please restart the application as administrator.",
             )
         
         self._create_menu()
@@ -172,184 +176,193 @@ class WebsiteBlockerApp:
 
     def _create_widgets(self):
         """Create GUI widgets."""
-        # Main frame with padding
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # URL input
+
+        # --- URL input ---
         url_frame = ttk.Frame(main_frame)
         url_frame.pack(fill=tk.X, pady=(0, 10))
-        
+
         ttk.Label(url_frame, text="Website URL:").pack(side=tk.LEFT)
-        
         self.url_entry = ttk.Entry(url_frame)
         self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 5))
         self.url_entry.bind("<Return>", lambda e: self._block_website())
-        
         ttk.Button(url_frame, text="Block", command=self._block_website).pack(side=tk.LEFT)
-        
-        # Time limit options
+
+        # --- Block duration ---
         time_frame = ttk.LabelFrame(main_frame, text="Block Duration")
         time_frame.pack(fill=tk.X, pady=(0, 10))
-        
+
         self.duration_var = tk.StringVar(value="permanent")
-        
         ttk.Radiobutton(
-            time_frame, text="Permanent", 
-            variable=self.duration_var, value="permanent"
+            time_frame, text="Permanent",
+            variable=self.duration_var, value="permanent",
         ).grid(row=0, column=0, sticky=tk.W, padx=5)
-        
         ttk.Radiobutton(
-            time_frame, text="Until:", 
-            variable=self.duration_var, value="until"
+            time_frame, text="Until:",
+            variable=self.duration_var, value="until",
         ).grid(row=0, column=1, sticky=tk.W, padx=5)
-        
-        # Time widgets
+
         time_select_frame = ttk.Frame(time_frame)
         time_select_frame.grid(row=0, column=2, sticky=tk.W)
-        
-        # Hours dropdown (1-12)
+
         self.hour_var = tk.StringVar(value="12")
         ttk.Combobox(
             time_select_frame, textvariable=self.hour_var,
             values=[str(i).zfill(2) for i in range(1, 13)],
-            width=3, state="readonly"
+            width=3, state="readonly",
         ).pack(side=tk.LEFT, padx=2)
-        
+
         ttk.Label(time_select_frame, text=":").pack(side=tk.LEFT)
-        
-        # Minutes dropdown (00-59)
+
         self.minute_var = tk.StringVar(value="00")
         ttk.Combobox(
             time_select_frame, textvariable=self.minute_var,
             values=[str(i).zfill(2) for i in range(0, 60, 5)],
-            width=3, state="readonly"
+            width=3, state="readonly",
         ).pack(side=tk.LEFT, padx=2)
-        
-        # AM/PM
+
         self.ampm_var = tk.StringVar(value="PM")
         ttk.Combobox(
             time_select_frame, textvariable=self.ampm_var,
-            values=["AM", "PM"], width=3, state="readonly"
+            values=["AM", "PM"], width=3, state="readonly",
         ).pack(side=tk.LEFT, padx=2)
-        
-        # Website list
+
+        # --- Blocked websites list ---
         list_frame = ttk.LabelFrame(main_frame, text="Blocked Websites")
         list_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # Scrollbar
-        scrollbar = ttk.Scrollbar(list_frame)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Website listbox
-        self.site_listbox = tk.Listbox(list_frame)
-        self.site_listbox.pack(fill=tk.BOTH, expand=True)
-        
-        # Configure scrollbar
-        self.site_listbox.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.site_listbox.yview)
-        
-        # Action buttons
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
-        
+
+        # Search bar (issue #6)
+        search_frame = ttk.Frame(list_frame)
+        search_frame.pack(fill=tk.X, padx=5, pady=(5, 2))
+
+        ttk.Label(search_frame, text="🔍").pack(side=tk.LEFT)
+
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", self._on_search_change)
+        self.search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 4))
+
         ttk.Button(
-            button_frame, text="Unblock Selected", 
-            command=self._unblock_selected
-        ).pack(side=tk.LEFT, padx=(0, 5))
-        
-        ttk.Button(
-            button_frame, text="Unblock All", 
-            command=self._unblock_all
+            search_frame, text="✕", width=2,
+            command=self._clear_search,
         ).pack(side=tk.LEFT)
 
-        # Import / Export block list (issue #7)
+        # Listbox + scrollbar
+        scrollbar = ttk.Scrollbar(list_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.site_listbox = tk.Listbox(list_frame, yscrollcommand=scrollbar.set)
+        self.site_listbox.pack(fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.site_listbox.yview)
+
+        # --- Action buttons ---
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+
+        ttk.Button(
+            button_frame, text="Unblock Selected",
+            command=self._unblock_selected,
+        ).pack(side=tk.LEFT, padx=(0, 5))
+
+        ttk.Button(
+            button_frame, text="Unblock All",
+            command=self._unblock_all,
+        ).pack(side=tk.LEFT)
+
         ttk.Button(
             button_frame, text="Export",
-            command=self._export_blocklist
+            command=self._export_blocklist,
         ).pack(side=tk.RIGHT)
 
         ttk.Button(
             button_frame, text="Import",
-            command=self._import_blocklist
+            command=self._import_blocklist,
         ).pack(side=tk.RIGHT, padx=(0, 5))
-    
-    def _update_site_list(self):
-        """Update the list of blocked websites."""
-        # Clear the listbox
+
+    # ------------------------------------------------------------------
+    # Search helpers (issue #6)
+    # ------------------------------------------------------------------
+
+    def _on_search_change(self, *_):
+        """Filter the listbox in real-time as the user types."""
+        query = self.search_var.get().lower()
         self.site_listbox.delete(0, tk.END)
-        
-        # Get blocked sites and add to listbox
-        blocked_sites = self.blocker.get_blocked_websites()
-        for site in blocked_sites:
-            self.site_listbox.insert(tk.END, site)
-    
+        for site in self._all_blocked:
+            if query in site.lower():
+                self.site_listbox.insert(tk.END, site)
+
+    def _clear_search(self):
+        """Clear the search field, restoring the full list."""
+        self.search_var.set("")
+        self.search_entry.focus()
+
+    # ------------------------------------------------------------------
+    # List management
+    # ------------------------------------------------------------------
+
+    def _update_site_list(self):
+        """Refresh _all_blocked from the hosts file, then re-apply any active search."""
+        self._all_blocked = self.blocker.get_blocked_websites()
+        self._on_search_change()  # honours whatever is currently in the search box
+
+    # ------------------------------------------------------------------
+    # Block / unblock actions
+    # ------------------------------------------------------------------
+
     def _block_website(self):
         """Block the website entered in the URL field."""
         url = self.url_entry.get().strip()
-        
         if not url:
             messagebox.showerror("Error", "Please enter a website URL.")
             return
-        
-        # Clean and validate URL
+
         url = clean_url(url)
         if not is_valid_url(url):
             messagebox.showerror("Error", "Please enter a valid website URL (e.g., example.com).")
             return
-        
-        # Set block duration
+
         if self.duration_var.get() == "until":
             try:
-                # Parse time
                 hour = int(self.hour_var.get())
                 minute = int(self.minute_var.get())
                 is_pm = self.ampm_var.get() == "PM"
-                
-                # Convert to 24-hour format
+
                 if is_pm and hour < 12:
                     hour += 12
                 elif not is_pm and hour == 12:
                     hour = 0
-                
+
                 now = datetime.datetime.now()
-                block_until = now.replace(hour=hour, minute=minute)
-                
-                # If the time is in the past, set it for tomorrow
+                block_until = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
                 if block_until <= now:
                     block_until += datetime.timedelta(days=1)
-                
-                # Save block duration
+
                 save_block_until(block_until.isoformat())
-                
             except Exception as e:
                 messagebox.showerror("Error", f"Invalid time format: {e}")
                 return
         else:
-            save_block_until(None)  # Permanent block
-        
-        # Block the website
+            save_block_until(None)
+
         if self.blocker.block_website(url):
             messagebox.showinfo("Success", f"Successfully blocked {url}")
             self.url_entry.delete(0, tk.END)
             self._update_site_list()
-            
-            # Save to config
-            blocked_sites = self.blocker.get_blocked_websites()
-            save_blocked_sites(blocked_sites)
+            save_blocked_sites(self._all_blocked)
         else:
             messagebox.showerror(
-                "Error", 
-                "Failed to block website. Make sure you're running as administrator."
+                "Error",
+                "Failed to block website. Make sure you're running as administrator.",
             )
-    
+
     def _unblock_selected(self):
         """Unblock the selected website."""
         selection = self.site_listbox.curselection()
         if not selection:
             messagebox.showinfo("Info", "Please select a website to unblock.")
             return
-        
+
         website = self.site_listbox.get(selection[0])
 
         if not self._require_password():
@@ -358,16 +371,13 @@ class WebsiteBlockerApp:
         if self.blocker.unblock_website(website):
             messagebox.showinfo("Success", f"Successfully unblocked {website}")
             self._update_site_list()
-            
-            # Update config
-            blocked_sites = self.blocker.get_blocked_websites()
-            save_blocked_sites(blocked_sites)
+            save_blocked_sites(self._all_blocked)
         else:
             messagebox.showerror(
-                "Error", 
-                "Failed to unblock website. Make sure you're running as administrator."
+                "Error",
+                "Failed to unblock website. Make sure you're running as administrator.",
             )
-    
+
     def _unblock_all(self):
         """Unblock all websites."""
         if messagebox.askyesno("Confirm", "Are you sure you want to unblock all websites?"):
@@ -376,19 +386,20 @@ class WebsiteBlockerApp:
             if self.blocker.unblock_all():
                 messagebox.showinfo("Success", "Successfully unblocked all websites")
                 self._update_site_list()
-                
-                # Update config
                 save_blocked_sites([])
             else:
                 messagebox.showerror(
-                    "Error", 
-                    "Failed to unblock websites. Make sure you're running as administrator."
+                    "Error",
+                    "Failed to unblock websites. Make sure you're running as administrator.",
                 )
 
+    # ------------------------------------------------------------------
+    # Import / Export (issue #7)
+    # ------------------------------------------------------------------
+
     def _export_blocklist(self):
-        """Export the current block list to a JSON file (issue #7)."""
-        blocked_sites = self.blocker.get_blocked_websites()
-        if not blocked_sites:
+        """Export the current block list to a JSON file."""
+        if not self._all_blocked:
             messagebox.showinfo("Export", "There are no blocked websites to export.")
             return
 
@@ -399,44 +410,34 @@ class WebsiteBlockerApp:
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         if not file_path:
-            return  # user cancelled
+            return
 
         try:
-            # Use the freshest config so the exported expiry/type is accurate.
             config = load_config()
-            data = build_export_data(blocked_sites, config)
+            data = build_export_data(self._all_blocked, config)
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
             messagebox.showinfo(
                 "Export",
-                f"Exported {len(blocked_sites)} website(s) to:\n{file_path}",
+                f"Exported {len(self._all_blocked)} website(s) to:\n{file_path}",
             )
         except Exception as e:
             messagebox.showerror("Export Failed", f"Could not export block list:\n{e}")
 
     def _import_blocklist(self):
-        """Import a block list from a JSON file (issue #7).
-
-        Valid domains are blocked, duplicates are skipped gracefully, and
-        invalid entries are reported in a summary rather than aborting the
-        whole import.
-        """
+        """Import a block list from a JSON file."""
         file_path = filedialog.askopenfilename(
             title="Import Block List",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         if not file_path:
-            return  # user cancelled
+            return
 
-        # Read + parse the file, with a clear error for malformed JSON.
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 raw = json.load(f)
         except json.JSONDecodeError as e:
-            messagebox.showerror(
-                "Import Failed",
-                f"The selected file is not valid JSON:\n{e}",
-            )
+            messagebox.showerror("Import Failed", f"The selected file is not valid JSON:\n{e}")
             return
         except Exception as e:
             messagebox.showerror("Import Failed", f"Could not read the file:\n{e}")
@@ -448,21 +449,21 @@ class WebsiteBlockerApp:
             messagebox.showwarning(
                 "Import",
                 "No valid websites were found in the selected file."
-                + (f"\n\nSkipped {len(skipped)} invalid entr"
-                   f"{'y' if len(skipped) == 1 else 'ies'}." if skipped else ""),
+                + (
+                    f"\n\nSkipped {len(skipped)} invalid entr"
+                    f"{'y' if len(skipped) == 1 else 'ies'}."
+                    if skipped
+                    else ""
+                ),
             )
             return
 
-        # Block only the domains that aren't already blocked.
-        already_blocked = set(self.blocker.get_blocked_websites())
+        already_blocked = set(self._all_blocked)
         to_block = [d for d in valid_domains if d not in already_blocked]
         duplicates = len(valid_domains) - len(to_block)
 
         if not to_block:
-            messagebox.showinfo(
-                "Import",
-                "All valid websites in the file are already blocked.",
-            )
+            messagebox.showinfo("Import", "All valid websites in the file are already blocked.")
             return
 
         if not self.blocker.block_websites(to_block):
@@ -472,19 +473,21 @@ class WebsiteBlockerApp:
             )
             return
 
-        # Persist the updated list and refresh the UI.
         self._update_site_list()
-        save_blocked_sites(self.blocker.get_blocked_websites())
+        save_blocked_sites(self._all_blocked)
 
-        # Build a clear summary of what happened.
         summary = [f"Imported and blocked {len(to_block)} website(s)."]
         if duplicates:
-            summary.append(f"Skipped {duplicates} already-blocked entr"
-                           f"{'y' if duplicates == 1 else 'ies'}.")
+            summary.append(
+                f"Skipped {duplicates} already-blocked entr"
+                f"{'y' if duplicates == 1 else 'ies'}."
+            )
         if skipped:
             preview = ", ".join(skipped[:5])
             if len(skipped) > 5:
                 preview += ", ..."
-            summary.append(f"Skipped {len(skipped)} invalid entr"
-                           f"{'y' if len(skipped) == 1 else 'ies'}: {preview}")
+            summary.append(
+                f"Skipped {len(skipped)} invalid entr"
+                f"{'y' if len(skipped) == 1 else 'ies'}: {preview}"
+            )
         messagebox.showinfo("Import Complete", "\n".join(summary))
