@@ -4,7 +4,7 @@ import platform
 import os
 import json
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, simpledialog
 import datetime
 
 from src.blocker import WebsiteBlocker
@@ -16,6 +16,10 @@ from src.utils import (
     save_block_until,
     build_export_data,
     parse_import_data,
+    is_password_set,
+    set_password,
+    verify_password,
+    remove_password,
 )
 
 
@@ -44,9 +48,139 @@ class WebsiteBlockerApp:
                 "This application requires administrator privileges to modify the hosts file. "
                 "Please restart the application as administrator.",
             )
-
+        
+        self._create_menu()
         self._create_widgets()
         self._update_site_list()
+        
+    def _create_menu(self):
+        """Build the menu bar with the Security (password) options."""
+        menubar = tk.Menu(self.root)
+
+        security_menu = tk.Menu(menubar, tearoff=0)
+        security_menu.add_command(label="Set Password", command=self._set_password)
+        security_menu.add_command(label="Change Password", command=self._change_password)
+        security_menu.add_command(label="Remove Password", command=self._remove_password)
+        menubar.add_cascade(label="Security", menu=security_menu)
+
+        self.root.config(menu=menubar)
+
+    def _require_password(self) -> bool:
+        """Gate an unblock action behind the password, if one is set.
+
+        Returns True if the action may proceed: either no password is
+        configured, or the user entered the correct one. Returns False if the
+        user cancels or enters the wrong password.
+        """
+        if not is_password_set():
+            return True
+
+        entered = simpledialog.askstring(
+            "Password Required",
+            "Enter your password to unblock:",
+            show="*",
+            parent=self.root,
+        )
+        if entered is None:
+            return False  # user cancelled
+        if verify_password(entered):
+            return True
+
+        messagebox.showerror("Incorrect Password", "The password you entered is incorrect.")
+        return False
+
+    def _set_password(self):
+        """Create a password (only when none is set yet)."""
+        if is_password_set():
+            messagebox.showinfo(
+                "Password",
+                "A password is already set. Use 'Change Password' to update it.",
+            )
+            return
+
+        new = simpledialog.askstring(
+            "Set Password", "Enter a new password:", show="*", parent=self.root
+        )
+        if new is None:
+            return
+        if len(new) < 4:
+            messagebox.showerror("Password", "Password must be at least 4 characters.")
+            return
+
+        confirm = simpledialog.askstring(
+            "Set Password", "Re-enter the password:", show="*", parent=self.root
+        )
+        if confirm is None:
+            return
+        if new != confirm:
+            messagebox.showerror("Password", "Passwords do not match.")
+            return
+
+        if set_password(new):
+            messagebox.showinfo("Password", "Password protection enabled.")
+        else:
+            messagebox.showerror("Password", "Could not save the password.")
+
+    def _change_password(self):
+        """Change an existing password (current password required)."""
+        if not is_password_set():
+            messagebox.showinfo("Password", "No password is set. Use 'Set Password' first.")
+            return
+
+        current = simpledialog.askstring(
+            "Change Password", "Enter your current password:", show="*", parent=self.root
+        )
+        if current is None:
+            return
+        if not verify_password(current):
+            messagebox.showerror("Password", "Current password is incorrect.")
+            return
+
+        new = simpledialog.askstring(
+            "Change Password", "Enter a new password:", show="*", parent=self.root
+        )
+        if new is None:
+            return
+        if len(new) < 4:
+            messagebox.showerror("Password", "Password must be at least 4 characters.")
+            return
+
+        confirm = simpledialog.askstring(
+            "Change Password", "Re-enter the new password:", show="*", parent=self.root
+        )
+        if confirm is None:
+            return
+        if new != confirm:
+            messagebox.showerror("Password", "Passwords do not match.")
+            return
+
+        if set_password(new):
+            messagebox.showinfo("Password", "Password changed.")
+        else:
+            messagebox.showerror("Password", "Could not save the new password.")
+
+    def _remove_password(self):
+        """Remove password protection (current password required)."""
+        if not is_password_set():
+            messagebox.showinfo("Password", "No password is set.")
+            return
+
+        current = simpledialog.askstring(
+            "Remove Password",
+            "Enter your current password to remove protection:",
+            show="*",
+            parent=self.root,
+        )
+        if current is None:
+            return
+        if not verify_password(current):
+            messagebox.showerror("Password", "Password is incorrect.")
+            return
+
+        if remove_password():
+            messagebox.showinfo("Password", "Password protection removed.")
+        else:
+            messagebox.showerror("Password", "Could not remove the password.")
 
     def _handle_admin_elevation(self):
         """Handle Windows UAC elevation when Administrator privileges are required."""
@@ -298,6 +432,10 @@ class WebsiteBlockerApp:
             return
 
         website = self.site_listbox.get(selection[0])
+
+        if not self._require_password():
+            return
+
         if self.blocker.unblock_website(website):
             messagebox.showinfo("Success", f"Successfully unblocked {website}")
             self._update_site_list()
@@ -311,6 +449,8 @@ class WebsiteBlockerApp:
     def _unblock_all(self):
         """Unblock all websites."""
         if messagebox.askyesno("Confirm", "Are you sure you want to unblock all websites?"):
+            if not self._require_password():
+                return
             if self.blocker.unblock_all():
                 messagebox.showinfo("Success", "Successfully unblocked all websites")
                 self._update_site_list()
