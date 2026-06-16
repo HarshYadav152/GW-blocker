@@ -1,3 +1,7 @@
+import sys
+import ctypes
+import platform
+import os
 import json
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
@@ -19,6 +23,7 @@ from src.utils import (
 )
 
 
+
 class WebsiteBlockerApp:
     def __init__(self, root):
         """Initialize the Website Blocker GUI."""
@@ -35,7 +40,10 @@ class WebsiteBlockerApp:
         self._all_blocked: list = []
 
         if not self.blocker.is_admin():
-            messagebox.showwarning(
+            if platform.system().lower() == "windows":
+                self._handle_admin_elevation()
+            else:
+                messagebox.showwarning(
                 "Administrator Privileges Required",
                 "This application requires administrator privileges to modify the hosts file. "
                 "Please restart the application as administrator.",
@@ -173,6 +181,66 @@ class WebsiteBlockerApp:
             messagebox.showinfo("Password", "Password protection removed.")
         else:
             messagebox.showerror("Password", "Could not remove the password.")
+
+    def _handle_admin_elevation(self):
+        """Handle Windows UAC elevation when Administrator privileges are required."""
+
+        restart = messagebox.askyesno(
+            "Administrator Privileges Required",
+            (
+                "Administrator privileges are required to modify the Windows hosts file.\n\n"
+                "Would you like GW-Blocker to restart as Administrator?"
+            ),
+        )
+
+        if not restart:
+            self.root.destroy()
+            sys.exit(0)
+
+        try:
+            if getattr(sys, "frozen", False):
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",
+                    sys.executable,
+                    None,
+                    None,
+                    1,
+                )
+            else:
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",
+                    sys.executable,
+                    "-m src.main",
+                    os.getcwd(),
+                    1,
+                )
+
+            # ShellExecute returns values > 32 on success.
+            if result > 32:
+                self.root.destroy()
+                sys.exit(0)
+
+            messagebox.showerror(
+                "Elevation Failed",
+                (
+                    "GW-Blocker could not restart with Administrator privileges.\n\n"
+                    "Please launch the application as Administrator."
+                ),
+            )
+
+        except Exception:
+            messagebox.showerror(
+                "Elevation Failed",
+                (
+                    "GW-Blocker could not restart with Administrator privileges.\n\n"
+                    "Please launch the application as Administrator."
+                ),
+            )
+
+        self.root.destroy()
+        sys.exit(1)
 
     def _create_widgets(self):
         """Create GUI widgets."""
