@@ -403,14 +403,24 @@ class WebsiteBlockerApp:
             if query in site.lower()
         ]
 
+        # No websites blocked at all
         if not self._all_blocked:
             self.site_listbox.insert(
                 tk.END,
                 "No blocked websites yet. Add a website URL above."
             )
-        else:
+
+        # Search returned matches
+        elif filtered_sites:
             for site in filtered_sites:
                 self.site_listbox.insert(tk.END, site)
+
+        # Search returned nothing
+        elif query:
+            self.site_listbox.insert(
+                tk.END,
+                f'No websites found matching "{query}"'
+            )
 
     def _clear_search(self):
         """Clear the search field, restoring the full list."""
