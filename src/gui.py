@@ -29,7 +29,8 @@ class WebsiteBlockerApp:
         """Initialize the Website Blocker GUI."""
         self.root = root
         self.root.title("GW-blocker")
-        self.root.geometry("500x430")
+        self.root.geometry("720x600")
+        self.root.minsize(650, 550)
         self.root.resizable(True, True)
 
         self.blocker = WebsiteBlocker()
@@ -50,6 +51,7 @@ class WebsiteBlockerApp:
             )
         
         self._create_menu()
+        self._configure_styles()
         self._create_widgets()
         self._update_site_list()
         
@@ -64,6 +66,24 @@ class WebsiteBlockerApp:
         menubar.add_cascade(label="Security", menu=security_menu)
 
         self.root.config(menu=menubar)
+    
+    def _configure_styles(self):
+        style = ttk.Style()
+
+        try:
+            style.theme_use("vista")
+        except tk.TclError:
+            pass
+
+        style.configure(
+            "Header.TLabel",
+            font=("Segoe UI", 18, "bold")
+        )
+
+        style.configure(
+            "SubHeader.TLabel",
+            font=("Segoe UI", 10)
+        )
 
     def _require_password(self) -> bool:
         """Gate an unblock action behind the password, if one is set.
@@ -245,6 +265,14 @@ class WebsiteBlockerApp:
     def _create_widgets(self):
         """Create GUI widgets."""
         main_frame = ttk.Frame(self.root, padding="10")
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill=tk.X, pady=(0, 15))
+
+        ttk.Label(
+            header_frame,
+            text="Block distracting websites quickly and safely",
+            style="SubHeader.TLabel"
+        ).pack(anchor="w")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # --- URL input ---
