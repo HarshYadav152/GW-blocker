@@ -264,20 +264,26 @@ class WebsiteBlockerApp:
 
     def _create_widgets(self):
         """Create GUI widgets."""
-        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame = ttk.Frame(self.root, padding="15")
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill=tk.X, pady=(0, 15))
+        header_frame.pack(fill=tk.X, pady=(0, 20))
 
         ttk.Label(
             header_frame,
             text="Block distracting websites quickly and safely",
-            style="SubHeader.TLabel"
-        ).pack(anchor="w")
+            font=("Segoe UI", 12, "bold"),
+        ).pack(anchor=tk.W)
+
+        ttk.Label(
+            header_frame,
+            text="Stay foucsed by managing blocked websites in one place",
+        ).pack(anchor=tk.W, pady=(4, 0))
+
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # --- URL input ---
         url_frame = ttk.Frame(main_frame)
-        url_frame.pack(fill=tk.X, pady=(0, 10))
+        url_frame.pack(fill=tk.X, pady=(0, 20))
 
         ttk.Label(url_frame, text="Website URL:").pack(side=tk.LEFT)
         self.url_entry = ttk.Entry(url_frame)
@@ -287,7 +293,8 @@ class WebsiteBlockerApp:
 
         # --- Block duration ---
         time_frame = ttk.LabelFrame(main_frame, text="Block Duration")
-        time_frame.pack(fill=tk.X, pady=(0, 10))
+        time_frame.configure(padding=10)
+        time_frame.pack(fill=tk.X, pady=(0, 15))
 
         self.duration_var = tk.StringVar(value="permanent")
         ttk.Radiobutton(
@@ -326,11 +333,12 @@ class WebsiteBlockerApp:
 
         # --- Blocked websites list ---
         list_frame = ttk.LabelFrame(main_frame, text="Blocked Websites")
+        list_frame.configure(padding=8)
         list_frame.pack(fill=tk.BOTH, expand=True)
 
         # Search bar (issue #6)
         search_frame = ttk.Frame(list_frame)
-        search_frame.pack(fill=tk.X, padx=5, pady=(5, 2))
+        search_frame.pack(fill=tk.X, padx=8, pady=(10, 10))
 
         ttk.Label(search_frame, text="🔍").pack(side=tk.LEFT)
 
@@ -354,7 +362,7 @@ class WebsiteBlockerApp:
 
         # --- Action buttons ---
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
+        button_frame.pack(fill=tk.X, pady=(20, 0))
 
         ttk.Button(
             button_frame, text="Unblock Selected",
