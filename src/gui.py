@@ -29,8 +29,8 @@ class WebsiteBlockerApp:
         """Initialize the Website Blocker GUI."""
         self.root = root
         self.root.title("GW-blocker")
-        self.root.geometry("720x600")
-        self.root.minsize(650, 550)
+        self.root.geometry("700x550")
+        self.root.minsize(800, 650)
         self.root.resizable(True, True)
 
         self.blocker = WebsiteBlocker()
@@ -77,12 +77,12 @@ class WebsiteBlockerApp:
 
         style.configure(
             "Header.TLabel",
-            font=("Segoe UI", 18, "bold")
+            font=("Segoe UI", 16, "bold")
         )
 
         style.configure(
             "SubHeader.TLabel",
-            font=("Segoe UI", 10)
+            font=("Segoe UI", 9)
         )
 
     def _require_password(self) -> bool:
@@ -334,18 +334,18 @@ class WebsiteBlockerApp:
         # --- Blocked websites list ---
         list_frame = ttk.LabelFrame(main_frame, text="Blocked Websites")
         list_frame.configure(padding=8)
-        list_frame.pack(fill=tk.BOTH, expand=True)
+        list_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
 
         # Search bar (issue #6)
         search_frame = ttk.Frame(list_frame)
-        search_frame.pack(fill=tk.X, padx=8, pady=(10, 10))
+        search_frame.pack(fill=tk.X, padx=8, pady=(8, 6))
 
         ttk.Label(search_frame, text="🔍").pack(side=tk.LEFT)
 
         self.search_var = tk.StringVar()
         self.search_var.trace_add("write", self._on_search_change)
         self.search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
-        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(4, 4))
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(6, 6))
 
         ttk.Button(
             search_frame, text="✕", width=2,
@@ -362,27 +362,31 @@ class WebsiteBlockerApp:
 
         # --- Action buttons ---
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(20, 0))
+        button_frame.pack(fill=tk.X, pady=(12, 4))
 
         ttk.Button(
             button_frame, text="Unblock Selected",
+            width=16,
             command=self._unblock_selected,
-        ).pack(side=tk.LEFT, padx=(0, 5))
+        ).pack(side=tk.LEFT, padx=(0, 8))
 
         ttk.Button(
             button_frame, text="Unblock All",
+            width=16,
             command=self._unblock_all,
         ).pack(side=tk.LEFT)
 
         ttk.Button(
             button_frame, text="Export",
+            width=12,
             command=self._export_blocklist,
         ).pack(side=tk.RIGHT)
 
         ttk.Button(
             button_frame, text="Import",
+            width=12,
             command=self._import_blocklist,
-        ).pack(side=tk.RIGHT, padx=(0, 5))
+        ).pack(side=tk.RIGHT, padx=(0, 8))
 
     # ------------------------------------------------------------------
     # Search helpers (issue #6)
@@ -392,8 +396,20 @@ class WebsiteBlockerApp:
         """Filter the listbox in real-time as the user types."""
         query = self.search_var.get().lower()
         self.site_listbox.delete(0, tk.END)
-        for site in self._all_blocked:
-            if query in site.lower():
+
+
+        filtered_sites = [
+            site for site in self._all_blocked
+            if query in site.lower()
+        ]
+
+        if not self._all_blocked:
+            self.site_listbox.insert(
+                tk.END,
+                "No blocked websites yet. Add a website URL above."
+            )
+        else:
+            for site in filtered_sites:
                 self.site_listbox.insert(tk.END, site)
 
     def _clear_search(self):
