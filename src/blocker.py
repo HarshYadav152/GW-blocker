@@ -105,4 +105,4 @@ class WebsiteBlocker:
                             blocked_sites.append(parts[1])
         except Exception:
             pass
-        return blocked_sites
+        return sorted(blocked_sites)
