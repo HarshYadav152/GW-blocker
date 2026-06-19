@@ -348,6 +348,12 @@ class WebsiteBlockerApp:
             command=self._import_blocklist,
         ).pack(side=tk.RIGHT, padx=(0, 5))
 
+        # --- Keyboard shortcuts (issue #9) ---
+        self.root.bind("<Control-b>", lambda e: self._block_website())
+        self.root.bind("<Control-f>", lambda e: self.search_entry.focus())
+        self.root.bind("<Delete>", lambda e: self._unblock_selected())
+        self.root.bind("<Control-a>", lambda e: self._select_all())
+
     # ------------------------------------------------------------------
     # Search helpers (issue #6)
     # ------------------------------------------------------------------
@@ -364,6 +370,11 @@ class WebsiteBlockerApp:
         """Clear the search field, restoring the full list."""
         self.search_var.set("")
         self.search_entry.focus()
+
+    def _select_all(self):
+        """Select all items in the blocked website listbox."""
+        self.site_listbox.select_set(0, tk.END)
+        self.site_listbox.focus()
 
     # ------------------------------------------------------------------
     # List management
