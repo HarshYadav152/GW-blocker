@@ -1,6 +1,8 @@
 import re
 import json
 import os
+import hmac
+import hashlib
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -157,3 +159,98 @@ def parse_import_data(raw: Any):
         skipped.append(str(candidate))
 
     return valid, skipped
+
+
+# ---------------------------------------------------------------------------
+# Password protection (issue #5)
+# ---------------------------------------------------------------------------
+#
+# The password is never stored in plain text. We derive a key with
+# PBKDF2-HMAC-SHA256 over a fresh random salt and a high iteration count, and
+# store only {algo, salt, hash, iterations}. Verification recomputes the key
+# from the candidate password and compares it in constant time. All of this
+# uses the standard library (hashlib, hmac, os) -- no new dependencies.
+
+_PBKDF2_ALGO = "pbkdf2_sha256"
+_PBKDF2_ITERATIONS = 200_000
+_SALT_BYTES = 16
+
+
+def hash_password(password: str) -> Dict[str, Any]:
+    """Hash a password with PBKDF2-HMAC-SHA256 and a fresh random salt.
+
+    Returns a JSON-serialisable record. The plain password is never returned
+    or stored -- only the salt, the derived hash, and the parameters needed to
+    verify a future candidate.
+    """
+    salt = os.urandom(_SALT_BYTES)
+    derived = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt, _PBKDF2_ITERATIONS
+    )
+    return {
+        "algo": _PBKDF2_ALGO,
+        "salt": salt.hex(),
+        "hash": derived.hex(),
+        "iterations": _PBKDF2_ITERATIONS,
+    }
+
+
+def verify_password_hash(stored: Optional[Dict[str, Any]], password: str) -> bool:
+    """Constant-time check of a candidate password against a stored record.
+
+    Returns False if there is no stored record or it is malformed, so a corrupt
+    config can never be treated as "no password set" by a caller that only
+    checks this function.
+    """
+    if not stored:
+        return False
+    try:
+        salt = bytes.fromhex(stored["salt"])
+        expected = bytes.fromhex(stored["hash"])
+        iterations = int(stored.get("iterations", _PBKDF2_ITERATIONS))
+    except (KeyError, ValueError, TypeError):
+        return False
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
+    return hmac.compare_digest(derived, expected)
+
+
+def is_password_set() -> bool:
+    """True if a password hash is configured."""
+    return bool(load_config().get("password"))
+
+
+def set_password(password: str) -> bool:
+    """Store a new password (hashed). Overwrites any existing one."""
+    try:
+        config = load_config()
+        config["password"] = hash_password(password)
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+def verify_password(password: str) -> bool:
+    """Verify a candidate password against the stored hash.
+
+    Returns True when no password is configured, so callers that gate an action
+    can simply do ``if not verify_password(...)`` once they know protection is
+    on. Use is_password_set() to decide whether to prompt at all.
+    """
+    stored = load_config().get("password")
+    if not stored:
+        return True
+    return verify_password_hash(stored, password)
+
+
+def remove_password() -> bool:
+    """Remove the stored password hash, disabling protection."""
+    try:
+        config = load_config()
+        config.pop("password", None)
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=2)
+        return True
+    except Exception:
+        return False
