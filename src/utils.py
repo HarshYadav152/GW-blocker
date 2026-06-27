@@ -12,19 +12,29 @@ CONFIG_DIR.mkdir(exist_ok=True)
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
 def is_valid_url(url: str) -> bool:
-    """Check if the given string is a valid URL format."""
+    # Handle wildcard patterns (e.g., *.example.com)
+    if url.startswith("*."):
+        domain=url[2:]
+        domain_pattern = r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+        return bool(re.match(domain_pattern, domain))
     # Simple URL validation - checks for domain format
     pattern = r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
     return bool(re.match(pattern, url))
 
 def clean_url(url: str) -> str:
     """Clean and normalize a URL."""
+    url= url.strip().lower();
+    # Preserve wildcard prefix if present 
+    prefix=""
+    if url.startswith("*."):
+        prefix="*."
+        url= url[2:]
     # Remove http://, https://, and www. prefixes
     url = re.sub(r'^https?://', '', url)
     url = re.sub(r'^www\.', '', url)
     # Remove paths, query strings, etc.
     url = url.split('/')[0]
-    return url.lower()
+    return prefix + url
 
 def save_blocked_sites(sites: List[str]) -> bool:
     """Save list of blocked sites to config file."""
